@@ -1,0 +1,9 @@
+# Secretos y contraseñas (tu base de datos de Neon y tu SECRET_KEY)
+.env
+
+# Tu entorno virtual (las librerías instaladas con pip)
+venv/
+
+# Caché generada automáticamente por Python al ejecutarse
+__pycache__/
+*.pyc
