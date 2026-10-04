@@ -34,7 +34,7 @@ async def create_team(
 @router.post("/add_coach", status_code = status.HTTP_202_ACCEPTED)
 async def add_coach_to_team(
     team_id: str,
-    new_coach_id: str,
+    coach_email: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -55,6 +55,8 @@ async def add_coach_to_team(
         )
 
     # 3. Comprobar si ya está asignado usando la relación que acabamos de cargar
+    result = await db.execute(select(User.id).where(User.email == coach_email))
+    new_coach_id = result.scalar_one_or_none()
     if any(coach.id == new_coach_id for coach in team.coaches):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
