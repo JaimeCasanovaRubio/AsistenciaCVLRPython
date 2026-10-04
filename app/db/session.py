@@ -3,19 +3,18 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.orm import DeclarativeBase
 from app.core.config import settings
 
-#1. Motor de conexión
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo = False
+    pool_pre_ping=True,  # Comprueba si la conexión sigue viva antes de usarla
+    pool_recycle=300,    # Recicla conexiones tras 5 min de inactividad
 )
 
-#2. Fabricar sesiones
 AsyncSessionLocal = async_sessionmaker(
-    bind = engine,
-    autocommit = False,
-    autoflush = False,
-    expire_on_commit = False,
-    class_ = AsyncSession
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
 )
 
 #3. Clase base
@@ -26,3 +25,5 @@ class Base(DeclarativeBase):
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+        
+

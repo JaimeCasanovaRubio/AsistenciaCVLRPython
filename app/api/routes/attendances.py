@@ -1,35 +1,85 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from datetime import date
+import uuid
 from typing import List
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
+# Ajusta las importaciones a tus rutas reales de modelos y dependencias
+from app.database import get_db
+from app.models import Attendance, Player, User
+from app.schemas.attendance import AttendanceCreate, AttendanceResponse
 from app.api.deps import get_current_user, verify_team_coach
-from app.models.entities import User, Team, Player, Attendance
-from app.schemas.schemas import AttendanceCreate, AttendanceResponse
 
-router = APIRouter(prefix = "/attendance", tags = ["Asistencias"])
+router = APIRouter(tags=["Attendance"])
 
-@router.post("/bulk", status_code = status.HTTP_200_OK)
-async def sumbit_bulk_attendance(
-    attendance_data: AttendanceCreate,
+
+@router.get("/teams/{team_id}/attendances", response_model=List[AttendanceResponse])
+async def get_team_attendances(
+    team_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(Team.id).join(Team.players).where(Player.id == attendance_data.player_id))
-    team_id = result.scalar_one_or_none()
+    # 1. Verificar que el usuario sea el entrenador del equipo
     await verify_team_coach(team_id, current_user.id, db)
-    
-    new_attendance = Attendance(
-        player_id = attendance_data.player_id,
-        date = attendance_data.date,
-        status = attendance_data.status,
+
+    # 2. Obtener los IDs de todos los jugadores de ese equipo
+    players_query = await db.execute(select(Player.id).where(Player.team_id == team_id))
+    player_ids = players_query.scalars().all()
+
+    if not player_ids:
+        return []
+
+    # 3. Obtener todas las asistencias asociadas a esos jugadores
+    attendances_query = await db.execute(
+        select(Attendance).where(Attendance.player_id.in_(player_ids))
     )
-    
-    db.add(new_attendance)
+    attendances = attendances_query.scalars().all()
+
+    return attendances
+
+
+@router.post("/attendance", response_model=AttendanceResponse)
+async def record_attendance(
+    data: AttendanceCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Comprobar que el jugador existe y obtener su team_id
+    player_query = await db.execute(select(Player).where(Player.id == data.player_id))
+    player = player_query.scalar_one_or_none()
+
+    if not player:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Jugador no encontrado"
+        )
+
+    # 2. Verificar que el usuario sea el entrenador del equipo del jugador
+    await verify_team_coach(player.team_id, current_user.id, db)
+
+    # 3. Comprobar si ya existe un registro de asistencia para este jugador y fecha
+    existing_query = await db.execute(
+        select(Attendance).where(
+            Attendance.player_id == data.player_id,
+            Attendance.date == data.date
+        )
+    )
+    attendance_record = existing_query.scalar_one_or_none()
+
+    if attendance_record:
+        # Si ya existe, actualizamos el estado
+        attendance_record.status = data.status
+    else:
+        # Si no existe, creamos un nuevo registro
+        attendance_record = Attendance(
+            id=str(uuid.uuid4())[:10],  # O el generador de IDs que uses
+            player_id=data.player_id,
+            date=data.date,
+            status=data.status
+        )
+        db.add(attendance_record)
+
     await db.commit()
-    await db.refresh(new_attendance)
-    
-    return new_attendance
-    
+    await db.refresh(attendance_record)
+
+    return attendance_record
