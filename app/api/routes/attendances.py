@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Ajusta las importaciones a tus rutas reales de modelos y dependencias
-from app.db import get_db
+from app.db.session import get_db
 from app.models import Attendance, Player, User
 from app.schemas import AttendanceCreate, AttendanceResponse
 from app.api.deps import get_current_user, verify_team_coach
