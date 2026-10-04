@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.db.session import get_db
 from app.api.deps import get_current_user, verify_team_coach
 from app.models.entities import User, Team
-from app.schemas.schemas import TeamCreate, TeamResponse
+from app.schemas.schemas import TeamCreate, TeamResponse, AddCoachRequest
 
 router = APIRouter(prefix = "/teams", tags = ["Equipos"])
 
@@ -33,11 +33,12 @@ async def create_team(
 
 @router.post("/add_coach", status_code = status.HTTP_202_ACCEPTED)
 async def add_coach_to_team(
-    team_id: str,
-    coach_email: str,
+    data: AddCoachRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    team_id = data.team_id
+    coach_email = data.coach_email
     # 1. Comprobar que el usuario actual tenga permisos sobre el equipo
     await verify_team_coach(team_id=team_id, user_id=current_user.id, db=db)
 

@@ -80,3 +80,7 @@ class DataStateResponse(AttendanceBase):
     attendances: List[AttendanceResponse]
     
     model_config = ConfigDict(from_attributes = True)
+    
+class AddCoachRequest(BaseModel):
+    team_id: str
+    coach_email: str
