@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, teams, players, attendances
+from app.api.routes import auth, teams, players, attendances, notes
 
 app = FastAPI(
     title = "Asistencia CVLR API",
     description = "API para la gestion de asistencia de equipos deportivos",
-    version = "1.0.0",
+    version = "1.0.1",
 )
 
 
@@ -22,6 +22,7 @@ app.include_router(auth.router, prefix = "/api")
 app.include_router(teams.router, prefix = "/api")
 app.include_router(players.router, prefix = "/api")
 app.include_router(attendances.router, prefix = "/api")
+app.include_router(notes.router, prefix = "/api")
 
 
 @app.get("/", tags = ["Health"])

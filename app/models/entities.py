@@ -74,6 +74,12 @@ class Player(Base):
     team_id: Mapped[str] = mapped_column(String(36), ForeignKey("teams.id", ondelete = "CASCADE"))
     name: Mapped[str] = mapped_column(String(100), nullable = False)
     
+    notes: Mapped[List["Note"]] = relationship(
+        "Note",
+        back_populates="player",
+        cascade = "all, delete-orphan"
+    )
+    
     team: Mapped["Team"] = relationship(
         "Team",
         back_populates = "players"
@@ -104,4 +110,16 @@ class Attendance(Base):
     
     __table_args__ = (
         UniqueConstraint("player_id", "date", name = "uq_player_date_attendance"),
+    )
+    
+class Note(Base):
+    __tablename__ = "notes"
+    id: Mapped[str] = mapped_column(String(36), primary_key = True, default = gen_id)
+    player_id: Mapped[str] = mapped_column(String(36), ForeignKey("players.id", ondelete = "CASCADE"), nullable = False)
+    content: Mapped[str] = mapped_column(String(500), nullable = False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default = datetime.utcnow, nullable = False)
+    
+    player: Mapped["Player"] = relationship(
+        "Player",
+        back_populates = "notes"
     )

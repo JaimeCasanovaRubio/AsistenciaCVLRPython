@@ -84,3 +84,24 @@ class DataStateResponse(AttendanceBase):
 class AddCoachRequest(BaseModel):
     team_id: str
     coach_email: str
+
+class NoteBase(BaseModel):
+    content: str
+
+class NoteCreate(NoteBase):
+    pass
+
+class NoteResponse(NoteBase):
+    id: str
+    player_id: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes = True)
+
+class AddNoteRequest(BaseModel):
+    player_id: str
+    team_id: str
+    note: str
+
+class NotesResponse(NoteResponse):
+    pass
