@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AsistenciaCVLR"
     DATABASE_URL: str
     SECRET_KEY: str
+    GOOGLE_GENAI_API_KEY: str
     ALGORITHM: str = "HS256"
     ACCES_TOKEN_EXPIRE_MINUTES: int = 60*24*365*10
     

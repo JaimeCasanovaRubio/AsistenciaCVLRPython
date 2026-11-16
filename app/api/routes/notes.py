@@ -6,11 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, verify_team_coach
 from app.db.session import get_db
+from app.ia.client import get_embedded_text
 from app.models.entities import Note, Player, User
 from app.schemas.schemas import NoteCreate, NoteResponse
 
 router = APIRouter(prefix="/notes", tags=["Notas"])
-
 
 @router.post("/player/{player_id}", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
 async def create_player_note(
@@ -29,10 +29,13 @@ async def create_player_note(
         )
 
     await verify_team_coach(player.team_id, current_user.id, db)
-
+    
+    embedded_text = await get_embedded_text(note_in.content)
+    
     new_note = Note(
         player_id=player_id,
         content=note_in.content,
+        embedding=embedded_text
     )
 
     db.add(new_note)

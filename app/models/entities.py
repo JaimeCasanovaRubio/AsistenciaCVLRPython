@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 from sqlalchemy import String, DateTime, ForeignKey, Table, Column, Enum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 from app.db.session import  Base
 
@@ -118,6 +119,8 @@ class Note(Base):
     player_id: Mapped[str] = mapped_column(String(36), ForeignKey("players.id", ondelete = "CASCADE"), nullable = False)
     content: Mapped[str] = mapped_column(String(500), nullable = False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default = datetime.utcnow, nullable = False)
+    embedding: Mapped[List[float] | None] = mapped_column(Vector(512), nullable = True)  
+    
     
     player: Mapped["Player"] = relationship(
         "Player",
