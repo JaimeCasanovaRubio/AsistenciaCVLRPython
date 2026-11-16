@@ -87,7 +87,6 @@ class AddCoachRequest(BaseModel):
 
 class NoteBase(BaseModel):
     content: str
-    embedding: List[float]
 
 class NoteCreate(NoteBase):
     pass
