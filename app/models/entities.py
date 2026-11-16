@@ -119,9 +119,8 @@ class Note(Base):
     player_id: Mapped[str] = mapped_column(String(36), ForeignKey("players.id", ondelete = "CASCADE"), nullable = False)
     content: Mapped[str] = mapped_column(String(500), nullable = False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default = datetime.utcnow, nullable = False)
-    embedding: Mapped[List[float] | None] = mapped_column(Vector(512), nullable = True)  
-    
-    
+    embedding: Mapped[List[float] | None] = mapped_column(Vector(3072), nullable = True)
+
     player: Mapped["Player"] = relationship(
         "Player",
         back_populates = "notes"
