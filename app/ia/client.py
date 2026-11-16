@@ -15,8 +15,8 @@ async def get_embedded_text(text: str) -> list[float]:
     """
     Obtiene el embedding de un texto usando Google GenAI.
     """
-    response = await client.embeddings.create(
+    response =  client.models.embed_content(
         model = "gemini-embedding-2",
-        input = text
+        contents= text
     )
-    return response.data[0].embedding
+    return response.embeddings
