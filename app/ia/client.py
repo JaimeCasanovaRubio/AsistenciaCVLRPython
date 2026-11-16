@@ -3,6 +3,7 @@ from app.core.config import settings
 from google import genai
 
 
+
 client = genai.Client(api_key=settings.GOOGLE_GENAI_API_KEY)
 
 async def get_genai_client() -> genai.Client:
@@ -17,6 +18,6 @@ async def get_embedded_text(text: str) -> list[float]:
     """
     response =  client.models.embed_content(
         model = "gemini-embedding-2",
-        contents= text
+        contents = text
     )
-    return response.embeddings
+    return response.embeddings[0].values
